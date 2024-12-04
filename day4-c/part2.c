@@ -2,7 +2,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-
 size_t get_row_size(char *string) {
     size_t size = 0;
 
@@ -57,6 +56,8 @@ int match(char *input, size_t input_size, int row_size, int index) {
         return 0;
     }
 
+    // 160 is sum of 'S' and 'M' ASCII chars, this is the only way to make 160 out of chars from 'XMAS'
+    // so it effectively checks if two chars are 'M' and 'S' no matter the order 
     if (input[lt] + input[rb] != 160 || input[rt] + input[lb] != 160) {
         return 0;
     }
