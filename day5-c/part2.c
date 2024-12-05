@@ -4,9 +4,10 @@
 
 #define RULES_LEN 1176
 #define RULE_LINE_SIZE 6
-#define INCLUDE 1
-#define EXCLUDE 0
-#define INC_ERROR -1
+#define REPORTS_LEN 194
+#define SEP_LINE 1177
+#define LAST_LINE 1371
+
 
 typedef struct {
     int *buff;
@@ -21,21 +22,37 @@ vector vec_init() {
 }
 
 void vec_free(vector *vec) {
-    memset(vec->buff, 0, sizeof(int*));
+    memset(vec->buff, 0, sizeof(int) * vec->len);
     free(vec->buff);
-    vec->buff == NULL;
+    vec->buff = NULL;
 }
 
 void vec_push(vector *vec, int item) {
     if (vec->len == vec->cap) {
-        vec->buff = realloc(vec->buff, sizeof(int) * vec->cap * 2);
         vec->cap *= 2;
+        vec->buff = realloc(vec->buff, sizeof(int) * vec->cap);
     }
 
     vec->buff[vec->len] = item;
     vec->len += 1;
 }
 
+int vec_get(vector *vec, size_t index) {
+    if (index >= vec->len) {
+        perror("vec_get: Index out of range");
+        return -1;
+    }
+
+    return vec->buff[index];
+}
+
+void vec_insert(vector *vec, size_t index, int item) {
+    if (index >= vec->len) {
+        perror("vec_insert: Index out of range");
+    }
+
+    vec->buff[index] = item;
+}
 
 char *read_file(const char *filename) {
     FILE *file = fopen(filename, "r");
@@ -71,7 +88,6 @@ int two_chars_to_int(char char0, char char1) {
 typedef struct {
     int a;
     int b;
-    int inc; // inclusion
 } rule;
 
 void read_rules_from_input(rule rules[RULES_LEN], char *input) {
@@ -82,53 +98,95 @@ void read_rules_from_input(rule rules[RULES_LEN], char *input) {
 
         rules[i].a = num0;
         rules[i].b = num1;
-        rules[i].inc = INCLUDE;
     }
 }
 
-rule get_nth(rule rules[RULES_LEN], size_t n) {
-    size_t count = 0;
+void read_reports_from_input(vector reports[REPORTS_LEN], char *input) {
+    size_t index = RULE_LINE_SIZE * RULES_LEN + 1 + 1 - 1;
 
+    for (size_t i = 0; i < REPORTS_LEN; i++) {
+        reports[i] = vec_init();
+        while (input[index + 2] != '\n' && input[index + 2] != '\0') {
+            int num = two_chars_to_int(input[index], input[index + 1]); 
+            vec_push(&reports[i], num);
+            index += 3;
+        }
+
+        int num = two_chars_to_int(input[index], input[index + 1]); 
+        vec_push(&reports[i], num);
+        index += 3;
+    }
+}
+
+int contains(rule rules[RULES_LEN], rule pat) {
     for (size_t i = 0; i < RULES_LEN; i++) {
-        if (rules[i].inc) {
-            if (count == n) {
-                return rules[i];
-            } else {
-                count++;
+        if (rules[i].a == pat.a && rules[i].b == pat.b) {
+            // printf("Rule is matched: %i == %i, %i == %i\n", rules[i].a, pat.a, rules[i].b, pat.b);
+            // printf("MAthed");
+            return 1;
+        } 
+    }
+
+    return 0;
+}
+
+int is_sorted(vector *report, rule rules[RULES_LEN]) {
+    for (size_t i = 0; i < report->len-1; i++) {
+        int num1 = vec_get(report, i);
+        for (size_t j = i+1; j < report->len; j++) {
+            int num2 = vec_get(report, j);
+            rule pat = {num2, num1}; // inverse rule
+            if (contains(rules, pat)) {
+                return 0;
             }
         }
     }
 
-    perror("Error: no included rules");
-
-    rule r = {0, 0, INC_ERROR};
-    return r;
+    return 1;
 }
 
-int *sorted_by_rules(rule rules[RULES_LEN]) {
-    vector left = vec_init();
-    vector right = vec_init();
-    get_nth(rules, 0);
-
-
-
-    vec_free(&left);
-    vec_free(&right);
+// bubble sooooort
+// WARNING: this may not work for every input
+// I'm not gonna debug it cuz it's 22:21 and I want to sleep.
+void sort(vector *report, rule rules[RULES_LEN]) {
+    while (!is_sorted(report, rules)) {
+        for (size_t i = 0; i < report->len-1; i++) {
+            int left = vec_get(report, i);
+            int right = vec_get(report, i + 1);
+            rule r = {right, left}; // left is greater than right
+            if (contains(rules, r)) {
+                vec_insert(report, i, right);
+                vec_insert(report, i + 1, left);
+            }
+        }
+    }
 }
-
-
-
 
 int main(void) {
     const char *filename = "input.txt";
     char *input = read_file(filename);
-    int rules[RULES_LEN][2];
+    rule rules[RULES_LEN];
+    vector reports[REPORTS_LEN];
     read_rules_from_input(rules, input);
+    read_reports_from_input(reports, input);
 
-    for (size_t i = 0; i < RULES_LEN; i++) {
-        printf("%i|%i\n", rules[i][0], rules[i][1]);
+    int res = 0;
+
+    for (size_t i = 0; i < REPORTS_LEN; i++) {
+        if (!is_sorted(&reports[i], rules)) {
+            sort(&reports[i], rules);
+            size_t mid = reports[i].len / 2;
+            res += vec_get(&reports[i], mid);
+            // printf("Report sorted: %u\n", i);
+        }
     }
 
+    printf("Result: %i", res);
+
+    for (size_t i = 0; i < REPORTS_LEN; i++) {
+        vec_free(&reports[i]);
+    }
+    
     free(input);
     return 0;
 }
