@@ -4,49 +4,6 @@
 
 #define SIZE 130
 
-typedef struct {
-    size_t x;
-    size_t y;
-} position;
-
-position pos_init(size_t x, size_t y) {
-    position pos = {x, y};
-    return pos;
-}
-
-position pos_from_char(char ch) {
-    switch (ch) {
-        case '<':
-            return pos_init(-1, 0);   
-        case '>':
-            return pos_init(1, 0);
-        case '^':
-            return pos_init(0, -1);
-        case 'V':
-            return pos_init(0, 1);
-    }
-
-    perror("Reached unreachable point");
-    return pos_init(1, 0);
-}
-
-char pos_get(position pos, char *input) {
-    return input[pos.x + pos.y * (SIZE + 1)];
-}
-
-void pos_rotate_right(position *dir) {
-    size_t x = dir->x;
-    dir->x = -dir->y;
-    dir->y = x;
-}
-
-position pos_add(position a, position b) {
-    return pos_init(
-        a.x + b.x,
-        a.y + b.y
-    );
-}
-
 char *read_file(const char *filename) {
     FILE *file = fopen(filename, "r");
     if (file == NULL) {
@@ -71,6 +28,49 @@ char *read_file(const char *filename) {
     fclose(file);
 
     return buffer;
+}
+
+typedef struct {
+    size_t x;
+    size_t y;
+} position;
+
+position pos_init(size_t x, size_t y) {
+    position pos = {x, y};
+    return pos;
+}
+
+position dir_from_char(char ch) {
+    switch (ch) {
+        case '<':
+            return pos_init(-1, 0);   
+        case '>':
+            return pos_init(1, 0);
+        case '^':
+            return pos_init(0, -1);
+        case 'v':
+            return pos_init(0, 1);
+    }
+
+    perror("Reached unreachable point");
+    return pos_init(1, 0);
+}
+
+char pos_get(position pos, char *input) {
+    return input[pos.x + pos.y * (SIZE + 1)];
+}
+
+void pos_rotate_right(position *dir) {
+    size_t x = dir->x;
+    dir->x = -dir->y;
+    dir->y = x;
+}
+
+position pos_add(position a, position b) {
+    return pos_init(
+        a.x + b.x,
+        a.y + b.y
+    );
 }
 
 int is_inside(position pos) {
@@ -107,7 +107,7 @@ int main(void) {
     const char *filename = "input.txt";
     char *input = read_file(filename);
     position guard = locate_guard(input);
-    position dir = pos_from_char(pos_get(guard, input));
+    position dir = dir_from_char(pos_get(guard, input));
     size_t tiles = 1;
 
 
