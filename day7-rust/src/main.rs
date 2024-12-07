@@ -20,8 +20,6 @@ fn main() {
 }
 
 
-
-
 fn parse_equations(input: &str) -> Vec<Equation> {
     return input.lines()
         .map(|line| {
@@ -58,6 +56,7 @@ impl Equation {
 
             for j in 0..length {
                 results.push(next as u128 + results[j]);
+                results.push(concat_nums(results[j], next as u128));
                 results[j] *= next as u128;
             }
         }
@@ -68,4 +67,10 @@ impl Equation {
             false
         }
     }
+}
+
+
+fn concat_nums(a: u128, b: u128) -> u128 {
+    let b_len = b.to_string().len();
+    a * 10_u128.pow(b_len as u32) + b
 }

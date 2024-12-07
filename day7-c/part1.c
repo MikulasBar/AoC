@@ -164,7 +164,7 @@ int check_if_possible(equation *eq) {
 
         for (size_t j = 0; j < length; j++) {
             ull num = vec_get(&results, j);
-            vec_insert(&results, i, num * next); // multiply the original vector
+            vec_insert(&results, j, num * next); // multiply the original vector
             vec_push(&results, num + next); // add up the and double the size of vector
         }
     }    
@@ -209,7 +209,7 @@ int main(void) {
     ull res = 0ULL;
     for (size_t i = 0; i < sum.len; i++) {
         res += vec_get(&sum, i);
-        printf("%llu\n", vec_get(&sum, i));
+        // printf("%llu\n", vec_get(&sum, i));
     }
     
     printf("%llu", res);

@@ -1,0 +1,3 @@
+part1: 3598800864292
+part2: Output is 340362531521793 which is 2170366 more than expected (340362529351427).
+So There is exactly 1 equation that doesn't work, Who knows why this is a edge case
